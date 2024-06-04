@@ -43,6 +43,21 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    const announcementCollection = client
+      .db("nexusDB")
+      .collection("announcements");
+
+    // Announcements
+    app.get("/announcements", async (req, res) => {
+      const announcements = await announcementCollection.find().toArray();
+      res.send(announcements);
+    });
+    app.post("/announcements", async (req, res) => {
+      const announcement = req.body;
+      const result = await announcementCollection.insertOne(announcement);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
