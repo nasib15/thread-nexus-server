@@ -46,6 +46,13 @@ async function run() {
     const announcementCollection = client
       .db("nexusDB")
       .collection("announcements");
+    const postsCollection = client.db("nexusDB").collection("posts");
+
+    // Posts
+    app.get("/posts", async (req, res) => {
+      const posts = await postsCollection.find().toArray();
+      res.send(posts);
+    });
 
     // Announcements
     app.get("/announcements", async (req, res) => {
