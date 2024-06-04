@@ -54,6 +54,15 @@ async function run() {
       res.send(posts);
     });
 
+    // Post details
+    app.get("/post/:id", async (req, res) => {
+      const id = req.params.id;
+      const post = await postsCollection.findOne({
+        _id: new ObjectId(id),
+      });
+      res.send(post);
+    });
+
     // Announcements
     app.get("/announcements", async (req, res) => {
       const announcements = await announcementCollection.find().toArray();
