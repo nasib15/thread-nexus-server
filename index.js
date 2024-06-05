@@ -47,6 +47,7 @@ async function run() {
       .db("nexusDB")
       .collection("announcements");
     const postsCollection = client.db("nexusDB").collection("posts");
+    const usersCollection = client.db("nexusDB").collection("users");
 
     // Posts
     app.get("/posts", async (req, res) => {
@@ -61,6 +62,18 @@ async function run() {
         _id: new ObjectId(id),
       });
       res.send(post);
+    });
+
+    // users
+    app.get("/users", async (req, res) => {
+      const users = await usersCollection.find().toArray();
+      res.send(users);
+    });
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
     });
 
     // Announcements
