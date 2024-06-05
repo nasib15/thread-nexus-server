@@ -69,6 +69,14 @@ async function run() {
       const users = await usersCollection.find().toArray();
       res.send(users);
     });
+    // individual user
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await usersCollection.findOne({
+        email,
+      });
+      res.send(user);
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;

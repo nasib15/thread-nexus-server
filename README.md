@@ -3,8 +3,8 @@
 - /posts
 - /post/:id
 - /announcements
--
--
+- /users
+- /user/email
 -
 -
 -
