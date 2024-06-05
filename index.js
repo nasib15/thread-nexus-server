@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 const app = express();
 
@@ -49,13 +50,13 @@ async function run() {
     const postsCollection = client.db("nexusDB").collection("posts");
     const usersCollection = client.db("nexusDB").collection("users");
 
-    // Posts
+    // Getting all posts
     app.get("/posts", async (req, res) => {
       const posts = await postsCollection.find().toArray();
       res.send(posts);
     });
 
-    // Post details
+    // Getting individual post details
     app.get("/post/:id", async (req, res) => {
       const id = req.params.id;
       const post = await postsCollection.findOne({
@@ -64,12 +65,13 @@ async function run() {
       res.send(post);
     });
 
-    // users
+    // Getting all users
     app.get("/users", async (req, res) => {
       const users = await usersCollection.find().toArray();
       res.send(users);
     });
-    // individual user
+
+    // Getting individual user
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = await usersCollection.findOne({
@@ -78,8 +80,15 @@ async function run() {
       res.send(user);
     });
 
+    // Add a new user
     app.post("/users", async (req, res) => {
       const user = req.body;
+      const query = { email: user.email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        res.send({ message: "User already exists" });
+        return;
+      }
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
@@ -89,10 +98,29 @@ async function run() {
       const announcements = await announcementCollection.find().toArray();
       res.send(announcements);
     });
+
+    // Add a new announcement
     app.post("/announcements", async (req, res) => {
       const announcement = req.body;
       const result = await announcementCollection.insertOne(announcement);
       res.send(result);
+    });
+
+    // Payment
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      const ammount = parseInt(price * 100);
+
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: ammount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
 
     // Send a ping to confirm a successful connection

@@ -4,8 +4,8 @@
 - /post/:id
 - /announcements
 - /users
-- /user/email
--
+- /user/:email
+- 
 -
 -
 -
