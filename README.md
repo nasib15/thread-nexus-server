@@ -5,7 +5,7 @@
 - /announcements
 - /users
 - /user/:email
-- 
+- /create-payment-intent
 -
 -
 -

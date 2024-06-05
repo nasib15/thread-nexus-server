@@ -93,6 +93,20 @@ async function run() {
       res.send(result);
     });
 
+    // Patch a user details
+    app.patch("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const { membership_status } = req.body;
+      const filter = { email };
+      const updateDoc = {
+        $set: {
+          membership_status,
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
     // Announcements
     app.get("/announcements", async (req, res) => {
       const announcements = await announcementCollection.find().toArray();
@@ -106,11 +120,10 @@ async function run() {
       res.send(result);
     });
 
-    // Payment
+    // Post Payment
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
       const ammount = parseInt(price * 100);
-
       // Create a PaymentIntent with the order amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
         amount: ammount,
