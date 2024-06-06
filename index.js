@@ -13,6 +13,7 @@ const corsOptions = {
     "http://localhost:5173",
     "http://localhost:5174",
     "https://thread-nexus.web.app",
+    "https://thread-nexus-client.vercel.app",
   ],
   credentials: true,
   optionSuccessStatus: 200,
@@ -77,6 +78,15 @@ async function run() {
         _id: new ObjectId(id),
       });
       res.send(post);
+    });
+
+    // Delete a post
+    app.delete("/post/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await postsCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
     });
 
     // Getting all users
