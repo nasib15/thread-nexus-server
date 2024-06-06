@@ -56,6 +56,13 @@ async function run() {
       res.send(posts);
     });
 
+    // Add a new post
+    app.post("/posts", async (req, res) => {
+      const post = req.body;
+      const result = await postsCollection.insertOne(post);
+      res.send(result);
+    });
+
     // Getting individual post details
     app.get("/post/:id", async (req, res) => {
       const id = req.params.id;
