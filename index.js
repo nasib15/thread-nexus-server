@@ -50,6 +50,7 @@ async function run() {
       .collection("announcements");
     const postsCollection = client.db("nexusDB").collection("posts");
     const usersCollection = client.db("nexusDB").collection("users");
+    const commentsCollection = client.db("nexusDB").collection("comments");
 
     // Getting all posts
     app.get("/posts", async (req, res) => {
@@ -86,6 +87,30 @@ async function run() {
       const result = await postsCollection.deleteOne({
         _id: new ObjectId(id),
       });
+      res.send(result);
+    });
+
+    // Getting all comments
+    app.get("/comments", async (req, res) => {
+      const comments = await commentsCollection.find().toArray();
+      res.send(comments);
+    });
+
+    // Getting comments of a post
+    app.get("/comments/:postId", async (req, res) => {
+      const postId = req.params.postId;
+      const post = await commentsCollection
+        .find({
+          postId,
+        })
+        .toArray();
+      res.send(post);
+    });
+
+    // Add a new comment
+    app.post("/comments", async (req, res) => {
+      const comment = req.body;
+      const result = await commentsCollection.insertOne(comment);
       res.send(result);
     });
 
