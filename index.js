@@ -51,6 +51,7 @@ async function run() {
     const postsCollection = client.db("nexusDB").collection("posts");
     const usersCollection = client.db("nexusDB").collection("users");
     const commentsCollection = client.db("nexusDB").collection("comments");
+    const reportsCollection = client.db("nexusDB").collection("reports");
 
     // Getting all posts
     app.get("/posts", async (req, res) => {
@@ -124,6 +125,19 @@ async function run() {
     app.post("/comments", async (req, res) => {
       const comment = req.body;
       const result = await commentsCollection.insertOne(comment);
+      res.send(result);
+    });
+
+    // Getting all reports
+    app.get("/reports", async (req, res) => {
+      const reports = await reportsCollection.find().toArray();
+      res.send(reports);
+    });
+
+    // Add a new report
+    app.post("/reports", async (req, res) => {
+      const report = req.body;
+      const result = await reportsCollection.insertOne(report);
       res.send(result);
     });
 
