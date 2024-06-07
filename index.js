@@ -81,6 +81,19 @@ async function run() {
       res.send(post);
     });
 
+    // Patching a post details and increase the comment count by 1
+    app.patch("/post/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $inc: {
+          comments_count: 1,
+        },
+      };
+      const result = await postsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
     // Delete a post
     app.delete("/post/:id", async (req, res) => {
       const id = req.params.id;
