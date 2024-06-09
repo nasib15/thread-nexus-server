@@ -172,11 +172,12 @@ async function run() {
     // Patch a user details
     app.patch("/user/:email", async (req, res) => {
       const email = req.params.email;
-      const { membership_status } = req.body;
+      const { membership_status, user_role } = req.body;
       const filter = { email };
       const updateDoc = {
         $set: {
           membership_status,
+          user_role,
         },
       };
       const result = await usersCollection.updateOne(filter, updateDoc);
