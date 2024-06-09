@@ -141,6 +141,42 @@ async function run() {
       res.send(result);
     });
 
+    // Update a report
+    app.patch("/report/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.query.status;
+      const commentId = req.query.commentId;
+      const postId = req.query.postId;
+      const filter = { _id: new ObjectId(id) };
+      if (status === "ignore") {
+        const updateDoc = {
+          $set: {
+            status,
+          },
+        };
+        const result = await reportsCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      }
+      if (status === "resolve") {
+        const filterComment = { _id: new ObjectId(commentId) };
+        const result = await commentsCollection.deleteOne(filterComment);
+        const updateDoc = {
+          $set: {
+            status: "deleted",
+          },
+        };
+        const result2 = await reportsCollection.updateOne(filter, updateDoc);
+        const filterPost = { _id: new ObjectId(postId) };
+        const updateDoc2 = {
+          $inc: {
+            comments_count: -1,
+          },
+        };
+        const result3 = await postsCollection.updateOne(filterPost, updateDoc2);
+        res.send(result);
+      }
+    });
+
     // Getting all users
     app.get("/users", async (req, res) => {
       const users = await usersCollection.find().toArray();
