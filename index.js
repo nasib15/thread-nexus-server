@@ -52,6 +52,7 @@ async function run() {
     const usersCollection = client.db("nexusDB").collection("users");
     const commentsCollection = client.db("nexusDB").collection("comments");
     const reportsCollection = client.db("nexusDB").collection("reports");
+    const tagsCollection = client.db("nexusDB").collection("tags");
 
     // Getting all posts
     app.get("/posts", async (req, res) => {
@@ -230,6 +231,19 @@ async function run() {
     app.post("/announcements", async (req, res) => {
       const announcement = req.body;
       const result = await announcementCollection.insertOne(announcement);
+      res.send(result);
+    });
+
+    // Getting all tags
+    app.get("/tags", async (req, res) => {
+      const tags = await tagsCollection.find().toArray();
+      res.send(tags);
+    });
+
+    // Add a new tag
+    app.post("/tags", async (req, res) => {
+      const tag = req.body;
+      const result = await tagsCollection.insertOne(tag);
       res.send(result);
     });
 
