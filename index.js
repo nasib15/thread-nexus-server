@@ -103,6 +103,7 @@ async function run() {
       const comment = req.query.comment;
       const upvote = req.query.upvote;
       const downvote = req.query.downvote;
+
       const filter = { _id: new ObjectId(id) };
       if (comment) {
         const updateDoc = {
@@ -148,6 +149,8 @@ async function run() {
     // Sorting posts by the difference of upvote and downvote
     app.get("/sort", async (req, res) => {
       const sort = req.query.sort;
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page);
       if (sort === "popularity") {
         const sortedPosts = await postsCollection
           .aggregate([
@@ -162,6 +165,8 @@ async function run() {
               $sort: { voteDifference: -1 },
             },
           ])
+          .skip(size * (page - 1))
+          .limit(size)
           .toArray();
         res.send(sortedPosts);
         return;
@@ -180,6 +185,8 @@ async function run() {
               $sort: { time: -1 },
             },
           ])
+          .skip(size * (page - 1))
+          .limit(size)
           .toArray();
         res.send(sortedPosts);
         return;
