@@ -119,6 +119,34 @@ async function run() {
       res.send(result);
     });
 
+    // Sorting posts by the difference of upvote and downvote
+    app.get("/sort", async (req, res) => {
+      const sort = req.query.sort;
+      if (sort) {
+        const sortedPosts = await postsCollection
+          .aggregate([
+            {
+              $addFields: {
+                voteDifference: {
+                  $subtract: ["$upvote_count", "$downvote_count"],
+                },
+              },
+            },
+            {
+              $sort: { voteDifference: -1 },
+            },
+          ])
+          .toArray();
+        res.send(sortedPosts);
+        return;
+      }
+      const options = {
+        sort: { time: -1 },
+      };
+      const posts = await postsCollection.find({}, options).toArray();
+      res.send(posts);
+    });
+
     // Getting all comments
     app.get("/comments", async (req, res) => {
       const comments = await commentsCollection.find().toArray();
