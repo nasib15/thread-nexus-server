@@ -100,14 +100,40 @@ async function run() {
     // Patching a post details and increase the comment count by 1
     app.patch("/post/:id", async (req, res) => {
       const id = req.params.id;
+      const comment = req.query.comment;
+      const upvote = req.query.upvote;
+      const downvote = req.query.downvote;
       const filter = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $inc: {
-          comments_count: 1,
-        },
-      };
-      const result = await postsCollection.updateOne(filter, updateDoc);
-      res.send(result);
+      if (comment) {
+        const updateDoc = {
+          $inc: {
+            comments_count: 1,
+          },
+        };
+        const result = await postsCollection.updateOne(filter, updateDoc);
+        res.send(result);
+        return;
+      }
+      if (upvote) {
+        const updateDoc = {
+          $inc: {
+            upvote_count: 1,
+          },
+        };
+        const result = await postsCollection.updateOne(filter, updateDoc);
+        res.send(result);
+        return;
+      }
+      if (downvote) {
+        const updateDoc = {
+          $inc: {
+            downvote_count: 1,
+          },
+        };
+        const result = await postsCollection.updateOne(filter, updateDoc);
+        res.send(result);
+        return;
+      }
     });
 
     // Delete a post
@@ -122,7 +148,7 @@ async function run() {
     // Sorting posts by the difference of upvote and downvote
     app.get("/sort", async (req, res) => {
       const sort = req.query.sort;
-      if (sort) {
+      if (sort === "popularity") {
         const sortedPosts = await postsCollection
           .aggregate([
             {
@@ -140,11 +166,24 @@ async function run() {
         res.send(sortedPosts);
         return;
       }
-      const options = {
-        sort: { time: -1 },
-      };
-      const posts = await postsCollection.find({}, options).toArray();
-      res.send(posts);
+      if (sort === "newest") {
+        const sortedPosts = await postsCollection
+          .aggregate([
+            {
+              $addFields: {
+                voteDifference: {
+                  $subtract: ["$upvote_count", "$downvote_count"],
+                },
+              },
+            },
+            {
+              $sort: { time: -1 },
+            },
+          ])
+          .toArray();
+        res.send(sortedPosts);
+        return;
+      }
     });
 
     // Getting all comments
