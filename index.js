@@ -30,6 +30,8 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
+// Verify JWT token
+
 // MongoDB Connection
 // Connection URI
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.talr0yk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -54,15 +56,13 @@ async function run() {
     const reportsCollection = client.db("nexusDB").collection("reports");
     const tagsCollection = client.db("nexusDB").collection("tags");
 
-    // JWT Token Generation
-
     // Generate a JWT token
     app.post("/jwt", (req, res) => {
       const email = req.body;
       const token = jwt.sign(email, process.env.SECRET_KEY, {
         expiresIn: "365d",
       });
-      res.cookie("token", token, cookieOptions).send({ success: true, token });
+      res.send({ token });
     });
 
     // Getting all posts
@@ -74,7 +74,10 @@ async function run() {
       if (email) {
         query = { "author.email": email };
       }
-      const posts = await postsCollection.find(query).toArray();
+      const options = {
+        sort: { time: -1 },
+      };
+      const posts = await postsCollection.find(query, options).toArray();
       res.send(posts);
     });
 
@@ -234,7 +237,12 @@ async function run() {
 
     // Announcements
     app.get("/announcements", async (req, res) => {
-      const announcements = await announcementCollection.find().toArray();
+      const options = {
+        sort: { date: -1 },
+      };
+      const announcements = await announcementCollection
+        .find({}, options)
+        .toArray();
       res.send(announcements);
     });
 
