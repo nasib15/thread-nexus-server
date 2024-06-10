@@ -2,11 +2,13 @@
 
 - /posts
 - /post/:id
-- /announcements
+- /comments
+- /comments/:postId
 - /users
 - /user/:email
+- /announcements
+- /reports
+- /report/:id
+- /tags
 - /create-payment-intent
-- 
--
--
--
+- /jwt

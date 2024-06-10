@@ -54,6 +54,17 @@ async function run() {
     const reportsCollection = client.db("nexusDB").collection("reports");
     const tagsCollection = client.db("nexusDB").collection("tags");
 
+    // JWT Token Generation
+
+    // Generate a JWT token
+    app.post("/jwt", (req, res) => {
+      const email = req.body;
+      const token = jwt.sign(email, process.env.SECRET_KEY, {
+        expiresIn: "365d",
+      });
+      res.cookie("token", token, cookieOptions).send({ success: true, token });
+    });
+
     // Getting all posts
     app.get("/posts", async (req, res) => {
       // getting email query
