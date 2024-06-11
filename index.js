@@ -359,6 +359,14 @@ async function run() {
 
     // Getting all tags
     app.get("/tags", async (req, res) => {
+      const search = req.query.search;
+      let query = {};
+      if (search) {
+        query.tags = { $regex: search, $options: "i" };
+        const result = await postsCollection.find(query).toArray();
+        res.send(result);
+        return;
+      }
       const tags = await tagsCollection.find().toArray();
       res.send(tags);
     });
