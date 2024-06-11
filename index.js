@@ -69,6 +69,8 @@ async function run() {
     app.get("/posts", async (req, res) => {
       // getting email query
       const email = req.query.email;
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page);
       let query = {};
       //   set query to email if email is present
       if (email) {
@@ -77,6 +79,15 @@ async function run() {
       const options = {
         sort: { time: -1 },
       };
+      if (size && page) {
+        const posts = await postsCollection
+          .find(query, options)
+          .skip(size * (page - 1))
+          .limit(size)
+          .toArray();
+        res.send(posts);
+        return;
+      }
       const posts = await postsCollection.find(query, options).toArray();
       res.send(posts);
     });
@@ -202,6 +213,19 @@ async function run() {
     // Getting comments of a post
     app.get("/comments/:postId", async (req, res) => {
       const postId = req.params.postId;
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page);
+      if (size && page) {
+        const post = await commentsCollection
+          .find({
+            postId,
+          })
+          .skip(size * (page - 1))
+          .limit(size)
+          .toArray();
+        res.send(post);
+        return;
+      }
       const post = await commentsCollection
         .find({
           postId,
