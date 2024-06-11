@@ -268,7 +268,13 @@ async function run() {
 
     // Getting all users
     app.get("/users", async (req, res) => {
-      const users = await usersCollection.find().toArray();
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page);
+      const users = await usersCollection
+        .find()
+        .skip(size * (page - 1))
+        .limit(size)
+        .toArray();
       res.send(users);
     });
 
