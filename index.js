@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
@@ -22,7 +21,6 @@ const corsOptions = {
 // Middlewares
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cookieParser());
 
 // Verify JWT token
 const verifyToken = (req, res, next) => {
@@ -37,6 +35,17 @@ const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   });
+};
+
+// Verify Admin middleware
+const verifyAdmin = async (req, res, next) => {
+  const email = req.decoded.email;
+  const user = await usersCollection.findOne({ email });
+  if (user.user_role === "admin") {
+    next();
+  } else {
+    res.status(403).send({ message: "You are not authorized" });
+  }
 };
 
 // MongoDB Connection
