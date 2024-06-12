@@ -22,32 +22,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Verify JWT token
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(401).send({ message: "Access Denied" });
-  }
-  jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
-    if (err) {
-      return res.status(401).send({ message: "Access Denied" });
-    }
-    req.user = decoded;
-    next();
-  });
-};
-
-// Verify Admin middleware
-const verifyAdmin = async (req, res, next) => {
-  const email = req.decoded.email;
-  const user = await usersCollection.findOne({ email });
-  if (user.user_role === "admin") {
-    next();
-  } else {
-    res.status(403).send({ message: "You are not authorized" });
-  }
-};
-
 // MongoDB Connection
 // Connection URI
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.talr0yk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -71,6 +45,32 @@ async function run() {
     const commentsCollection = client.db("nexusDB").collection("comments");
     const reportsCollection = client.db("nexusDB").collection("reports");
     const tagsCollection = client.db("nexusDB").collection("tags");
+
+    // Verify JWT token
+    const verifyToken = (req, res, next) => {
+      const token = req.headers.authorization;
+      if (!token) {
+        return res.status(401).send({ message: "Access Denied" });
+      }
+      jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: "Access Denied" });
+        }
+        req.user = decoded;
+        next();
+      });
+    };
+
+    // Verify Admin middleware
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.user.email;
+      const user = await usersCollection.findOne({ email });
+      if (user.user_role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "You are not authorized" });
+      }
+    };
 
     // Generate a JWT token
     app.post("/jwt", (req, res) => {
@@ -319,13 +319,8 @@ async function run() {
     });
 
     // Getting individual user
-    app.get("/user/:email", verifyToken, async (req, res) => {
-      const decodedEmail = req.decoded.email;
+    app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
-      if (decodedEmail !== email) {
-        res.status(403).send({ message: "You are not authorized" });
-        return;
-      }
       const user = await usersCollection.findOne({
         email,
       });
