@@ -109,7 +109,7 @@ async function run() {
     });
 
     // Add a new post
-    app.post("/posts", async (req, res) => {
+    app.post("/posts", verifyToken, async (req, res) => {
       const post = req.body;
       const result = await postsCollection.insertOne(post);
       res.send(result);
@@ -125,7 +125,7 @@ async function run() {
     });
 
     // Patching a post details and increase the comment count by 1
-    app.patch("/post/:id", async (req, res) => {
+    app.patch("/post/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const comment = req.query.comment;
       const upvote = req.query.upvote;
@@ -165,7 +165,7 @@ async function run() {
     });
 
     // Delete a post
-    app.delete("/post/:id", async (req, res) => {
+    app.delete("/post/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const result = await postsCollection.deleteOne({
         _id: new ObjectId(id),
@@ -251,27 +251,27 @@ async function run() {
     });
 
     // Add a new comment
-    app.post("/comments", async (req, res) => {
+    app.post("/comments", verifyToken, async (req, res) => {
       const comment = req.body;
       const result = await commentsCollection.insertOne(comment);
       res.send(result);
     });
 
     // Getting all reports
-    app.get("/reports", async (req, res) => {
+    app.get("/reports", verifyToken, verifyAdmin, async (req, res) => {
       const reports = await reportsCollection.find().toArray();
       res.send(reports);
     });
 
     // Add a new report
-    app.post("/reports", async (req, res) => {
+    app.post("/reports", verifyToken, async (req, res) => {
       const report = req.body;
       const result = await reportsCollection.insertOne(report);
       res.send(result);
     });
 
     // Update a report
-    app.patch("/report/:id", async (req, res) => {
+    app.patch("/report/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const status = req.query.status;
       const commentId = req.query.commentId;
@@ -307,7 +307,7 @@ async function run() {
     });
 
     // Getting all users
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const size = parseInt(req.query.size);
       const page = parseInt(req.query.page);
       const users = await usersCollection
@@ -319,8 +319,13 @@ async function run() {
     });
 
     // Getting individual user
-    app.get("/user/:email", async (req, res) => {
+    app.get("/user/:email", verifyToken, async (req, res) => {
+      const decodedEmail = req.decoded.email;
       const email = req.params.email;
+      if (decodedEmail !== email) {
+        res.status(403).send({ message: "You are not authorized" });
+        return;
+      }
       const user = await usersCollection.findOne({
         email,
       });
@@ -341,7 +346,7 @@ async function run() {
     });
 
     // Patch a user details
-    app.patch("/user/:email", async (req, res) => {
+    app.patch("/user/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const { membership_status, user_role } = req.body;
       const filter = { email };
@@ -367,7 +372,7 @@ async function run() {
     });
 
     // Add a new announcement
-    app.post("/announcements", async (req, res) => {
+    app.post("/announcements", verifyToken, verifyAdmin, async (req, res) => {
       const announcement = req.body;
       const result = await announcementCollection.insertOne(announcement);
       res.send(result);
@@ -388,14 +393,14 @@ async function run() {
     });
 
     // Add a new tag
-    app.post("/tags", async (req, res) => {
+    app.post("/tags", verifyToken, verifyAdmin, async (req, res) => {
       const tag = req.body;
       const result = await tagsCollection.insertOne(tag);
       res.send(result);
     });
 
     // Post Payment
-    app.post("/create-payment-intent", async (req, res) => {
+    app.post("/create-payment-intent", verifyToken, async (req, res) => {
       const { price } = req.body;
       const ammount = parseInt(price * 100);
       // Create a PaymentIntent with the order amount and currency
