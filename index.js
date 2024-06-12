@@ -19,18 +19,25 @@ const corsOptions = {
   optionSuccessStatus: 200,
 };
 
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-};
-
 // Middlewares
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
 // Verify JWT token
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).send({ message: "Access Denied" });
+  }
+  jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Access Denied" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
 
 // MongoDB Connection
 // Connection URI
@@ -363,7 +370,7 @@ async function run() {
       let query = {};
       if (search) {
         query.tags = { $regex: search, $options: "i" };
-        const result = await postsCollection.find(query).toArray();
+        const result = (await postsCollection.find(query).toArray()) || [];
         res.send(result);
         return;
       }
